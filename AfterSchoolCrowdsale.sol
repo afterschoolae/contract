@@ -223,7 +223,7 @@ contract CrowdsaleToken is StandardToken, Ownable {
   string public name = "AfterSchool Token";
   string public symbol = "AST";
   uint public decimals = 18;
-  address public multisig = 0x0;
+  address public multisig = 0x8Dab59292A76114776B4933aD6F1246Bf647aB90;
   
   // 1 ETH = 5800 AST tokens (1 AST = 0.05 USD)
   uint PRICE = 5800;
