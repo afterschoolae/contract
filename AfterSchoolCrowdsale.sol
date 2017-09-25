@@ -37,7 +37,7 @@ library SafeMath {
  * @dev see https://github.com/ethereum/EIPs/issues/179
  */
 contract ERC20Basic {
-  uint256 public totalSupply;
+  uint256 public totalSupply = 800000000 * 10**18;
   function balanceOf(address who) public constant returns (uint256);
   function transfer(address to, uint256 value) public returns (bool);
   event Transfer(address indexed from, address indexed to, uint256 value);
@@ -213,13 +213,13 @@ contract Ownable {
 }
 
 /*
- * CrowdsaleToken
+ * AfterSchoolCrowdsaleToken
  *
  * Simple ERC20 Token example, with crowdsale token creation
  */
-contract CrowdsaleToken is StandardToken, Ownable {
+contract AfterSchoolCrowdsaleToken is StandardToken, Ownable {
     
-  string public standard = "AfterSchool Token v1.0";
+  string public standard = "AfterSchool Token v1.1";
   string public name = "AfterSchool Token";
   string public symbol = "AST";
   uint public decimals = 18;
@@ -231,6 +231,10 @@ contract CrowdsaleToken is StandardToken, Ownable {
   struct ContributorData {
     uint contributionAmount;
     uint tokensIssued;
+  }
+
+  function AfterSchoolCrowdsaleToken() {
+    balances[msg.sender] = totalSupply;
   }
 
   mapping(address => ContributorData) public contributorList;
@@ -349,10 +353,9 @@ contract CrowdsaleToken is StandardToken, Ownable {
     contributorList[_contributor].contributionAmount += contributionAmount;
     ethRaised += contributionAmount;                                              // Add to eth raised
 
-    uint tokenAmount = calculateEthToAfterschool(contributionAmount);      // Calculate how much tokens must contributor get
+    uint256 tokenAmount = calculateEthToAfterschool(contributionAmount);      // Calculate how much tokens must contributor get
     if (tokenAmount > 0) {
-      totalSupply = totalSupply.add(tokenAmount);
-      balances[_contributor] = balances[_contributor].add(tokenAmount);
+      transferToContributor(_contributor, tokenAmount);
       contributorList[_contributor].tokensIssued += tokenAmount;                  // log token issuance
     }
 
@@ -360,8 +363,14 @@ contract CrowdsaleToken is StandardToken, Ownable {
         revert();
     }
   }
+
+
+    function transferToContributor(address _to, uint256 _value)  {
+    balances[owner] = balances[owner].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+  }
   
-  function calculateEthToAfterschool(uint _eth) constant returns(uint) {
+  function calculateEthToAfterschool(uint _eth) constant returns(uint256) {
   
     uint tokens = _eth.mul(getPrice());
     uint percentage = 0;
@@ -432,6 +441,7 @@ contract CrowdsaleToken is StandardToken, Ownable {
       if (!hasClaimedEthWhenFail[currentParticipantAddress]) {                        // Check if participant has already claimed
         contribution = contributorList[currentParticipantAddress].contributionAmount; // Get contribution of participant
         hasClaimedEthWhenFail[currentParticipantAddress] = true;                      // Set that he has claimed
+        balances[currentParticipantAddress] = 0;
         if (!currentParticipantAddress.send(contribution)){                           // Refund eth
           ErrorSendingETH(currentParticipantAddress, contribution);                   // If there is an issue raise event for manual recovery
         }
